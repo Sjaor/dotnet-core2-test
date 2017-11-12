@@ -44,6 +44,22 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
 
     public render() {
 
+        var orders = this.state.selectedCustomer.orders.map((item, index) => {
+
+            return (
+              <div key={index}>
+                <ul >{item.id}</ul>
+               {
+                  
+                item.lines.map((subitem, i) => {
+                  return (
+                     <ul ><li>{subitem.item} {subitem.qty}</li></ul>
+                  )
+                })
+               }
+              </div>
+            )});
+          console.log(orders);
         return <div><Customers customers = {this.state.customers} onSelect={(x) => this.onSelect(x)} selected={this.state.selectedCustomer.id} />
             <h1> Items </h1>
             <ul>
@@ -55,8 +71,7 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
             </ul>
             <h1> Orders </h1>
             <ul>
-                {this.state.selectedCustomer.orders.map(o =>
-                <li key={o.id}>{o.id}</li>)}
+                {orders}
             </ul>
         </div>;
     }
@@ -91,7 +106,7 @@ interface Item {
 }
 interface Order {
     id: number;
-    lines: orderLines;
+    lines: orderLines[];
 }
 interface orderLines {
     id: number;
