@@ -48,7 +48,7 @@ namespace Web.Controllers
 
             return await _context.Orders.Where(x => x.Customer.Id == id)
             .Include(x => x.Customer)
-            .Include(x => x.OrderLines)
+            .Include(x => x.OrderLines).ThenInclude(y => y.Item)
             .AsNoTracking()
             .ToListAsync();
         }

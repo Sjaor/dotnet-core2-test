@@ -14,7 +14,7 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
         this.state = {
             customers: [],
             items: [],
-            selectedCustomer: {id:0, name:'', orders:[]}
+            selectedCustomer: { id: 0, name: '', orders: [] }
         };
 
         fetch('api/Customers')
@@ -32,48 +32,59 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
     }
 
     onSelect({ value, label }) {
-
-       // this.setState((prevState, props) => { return { selectedCustomer: { name: label, id: value} };});
-        fetch('api/customers/'+ value+'/orders')
-        .then(response => response.json() as Promise<Order[]>)
-        .then(data => {
-            console.log(data)
-            this.setState((prevState, props) => { return { selectedCustomer: { name: label, id: value, orders: data} };});
-        });
+        fetch(`api/customers/${value}/orders`)
+            .then(response => response.json() as Promise<Order[]>)
+            .then(data => {
+                this.setState((prevState, props) => {
+                    return {
+                        selectedCustomer: {
+                            name: label,
+                            id: value,
+                            orders: data
+                        }
+                    };
+                }
+                );
+            });
     }
 
     public render() {
-
         var orders = this.state.selectedCustomer.orders.map((item, index) => {
-
             return (
-              <div key={index}>
-                <ul >{item.id}</ul>
-               {
-                  
-                item.lines.map((subitem, i) => {
-                  return (
-                     <ul ><li>{subitem.item} {subitem.qty}</li></ul>
-                  )
-                })
-               }
-              </div>
-            )});
-          console.log(orders);
-        return <div><Customers customers = {this.state.customers} onSelect={(x) => this.onSelect(x)} selected={this.state.selectedCustomer.id} />
-            <h1> Items </h1>
-            <ul>
-                {this.state.items.map(c =>
-                    <li key={c.id}>
-                        {c.name}
-                    </li>
-                )}
-            </ul>
-            <h1> Orders </h1>
-            <ul>
-                {orders}
-            </ul>
-        </div>;
+                <div key={index}>
+                    <li >Order nr {item.id}</li>
+                    {
+                        item.orderLines.map((subitem, i) => {
+                            return (
+                                <ul key={subitem.id}>
+                                    <li>{subitem.item.name} x {subitem.quantity}</li>
+                                </ul>
+                            )
+                        })
+                    }
+                </div>
+            )
+        });
+        return (
+            <div>
+                <Customers
+                    customers={this.state.customers}
+                    onSelect={x => this.onSelect(x)}
+                    selected={this.state.selectedCustomer} />
+                <h1> Items </h1>
+                <ul>
+                    {this.state.items.map(c =>
+                        <li key={c.id}>
+                            {c.name}
+                        </li>
+                    )}
+                </ul>
+                <h1> Orders </h1>
+                <ul>
+                    {orders}
+                </ul>
+            </div>
+        );
     }
 }
 class Customers extends React.Component<any, any> {
@@ -82,13 +93,24 @@ class Customers extends React.Component<any, any> {
         const options = this.props.customers.map(c => {
             return { label: c.name, value: c.id };
         });
-        console.log(this.props.selected)
-        return <div> Who are you?
-        <Dropdown options={options}
-                placeholder="Select an option"
-                value = {this.props.selected}
-                onChange={(x) => this.props.onSelect(x)} />
-        </div>;
+
+        let currentOption: any = null;
+        if (this.props.selected) {
+            currentOption = {
+                label: this.props.selected.name, 
+                value: this.props.selected.id
+            };
+        }
+
+        return (
+            <div>
+                <h3>Who are you?</h3>
+                <Dropdown options={options}
+                    placeholder="Select an option"
+                    value={currentOption}
+                    onChange={(x) => this.props.onSelect(x)} />
+            </div>
+        );
     }
 }
 interface Customer {
@@ -106,10 +128,10 @@ interface Item {
 }
 interface Order {
     id: number;
-    lines: orderLines[];
+    orderLines: orderLines[];
 }
 interface orderLines {
     id: number;
-    item: string;
-    qty: number;
+    item: Item;
+    quantity: number;
 }
