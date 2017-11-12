@@ -28,10 +28,10 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
                 this.setState({ items: data });
             });
 
-        this.onSelect = this.onSelect.bind(this);
+        this.onCustomerSelect = this.onCustomerSelect.bind(this);
     }
 
-    onSelect({ value, label }) {
+    onCustomerSelect({ value, label }) {
         fetch(`api/customers/${value}/orders`)
             .then(response => response.json() as Promise<Order[]>)
             .then(data => {
@@ -69,16 +69,19 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
             <div>
                 <Customers
                     customers={this.state.customers}
-                    onSelect={x => this.onSelect(x)}
+                    onSelect={x => this.onCustomerSelect(x)}
                     selected={this.state.selectedCustomer} />
                 <h1> Items </h1>
                 <ul>
                     {this.state.items.map(c =>
                         <li key={c.id}>
                             {c.name}
+                            <input></input>
                         </li>
+                    
                     )}
                 </ul>
+                <button>Order</button>
                 <h1> Orders </h1>
                 <ul>
                     {orders}
@@ -95,7 +98,7 @@ class Customers extends React.Component<any, any> {
         });
 
         let currentOption: any = null;
-        if (this.props.selected) {
+        if (this.props.selected.id) {
             currentOption = {
                 label: this.props.selected.name, 
                 value: this.props.selected.id
