@@ -14,15 +14,15 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
         this.state = {
             customers: [],
             items: [],
-            selectedCustomer: null
+            selectedCustomer: {id:0, name:'', orders:[]}
         };
 
-        fetch('api/Customers/GetAll')
+        fetch('api/Customers')
             .then(response => response.json() as Promise<Customer[]>)
             .then(data => {
                 this.setState({ customers: data });
             });
-        fetch('api/Items/GetAll')
+        fetch('api/Items')
             .then(response => response.json() as Promise<Item[]>)
             .then(data => {
                 this.setState({ items: data });
@@ -32,20 +32,19 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
     }
 
     onSelect({ value, label }) {
-        fetch('api/orders?customerId=' + value)
-            .then(response => response.json() as Promise<Order[]>)
-            .then(data => {
-                this.setState({ selectedCustomer: { name: label, id: value, orders: data } });
-            });
-        console.log(this.state.selectedCustomer)
+
+       // this.setState((prevState, props) => { return { selectedCustomer: { name: label, id: value} };});
+        fetch('api/customers/'+ value+'/orders')
+        .then(response => response.json() as Promise<Order[]>)
+        .then(data => {
+            console.log(data)
+            this.setState((prevState, props) => { return { selectedCustomer: { name: label, id: value, orders: data} };});
+        });
     }
 
     public render() {
-        const options = this.state.customers.map(c => {
-            return { label: c.name, value: c.id };
-        });
 
-        return <div><Customers customers={this.state.customers} onSelect={(x) => this.onSelect(x)} />
+        return <div><Customers customers = {this.state.customers} onSelect={(x) => this.onSelect(x)} selected={this.state.selectedCustomer.id} />
             <h1> Items </h1>
             <ul>
                 {this.state.items.map(c =>
@@ -53,6 +52,11 @@ export class Store extends React.Component<RouteComponentProps<{}>, StoreState> 
                         {c.name}
                     </li>
                 )}
+            </ul>
+            <h1> Orders </h1>
+            <ul>
+                {this.state.selectedCustomer.orders.map(o =>
+                <li key={o.id}>{o.id}</li>)}
             </ul>
         </div>;
     }
@@ -63,11 +67,11 @@ class Customers extends React.Component<any, any> {
         const options = this.props.customers.map(c => {
             return { label: c.name, value: c.id };
         });
-
+        console.log(this.props.selected)
         return <div> Who are you?
         <Dropdown options={options}
                 placeholder="Select an option"
-                value
+                value = {this.props.selected}
                 onChange={(x) => this.props.onSelect(x)} />
         </div>;
     }
@@ -87,4 +91,10 @@ interface Item {
 }
 interface Order {
     id: number;
+    lines: orderLines;
+}
+interface orderLines {
+    id: number;
+    item: string;
+    qty: number;
 }

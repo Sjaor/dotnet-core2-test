@@ -30,7 +30,7 @@ namespace Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Customer>>  Index()
+        public async Task<IEnumerable<Customer>> Index()
         {
             return await _context.Customers.AsNoTracking().ToListAsync();
         }
@@ -40,12 +40,17 @@ namespace Web.Controllers
         {
             return _context.Customers.Single(x => x.Id == id);
         }
-        
+
         [Route("{id}/orders")]
         [HttpGet]
         public async Task<IEnumerable<Order>> GetOrdersByCustomerId(long id)
         {
-            return await _context.Orders.Where(x => x.Customer.Id == id).AsNoTracking().ToListAsync();
+
+            return await _context.Orders.Where(x => x.Customer.Id == id)
+            .Include(x => x.Customer)
+            .Include(x => x.OrderLines)
+            .AsNoTracking()
+            .ToListAsync();
         }
 
         [HttpPost]
